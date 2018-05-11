@@ -1,6 +1,4 @@
 #!/bin/sh
-name=unset
-value=unset
 if [[ $# -eq 0 ]] ; then
     echo 'USAGE:  $0 <IP>'
     exit 0
