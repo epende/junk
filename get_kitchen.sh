@@ -19,7 +19,7 @@ AMBIENT_LINE=$(wget http://${IP_AMBIENT}/livedata.htm -O - | grep "input name" |
 
 AMBIENT_IN_TEMP=$(echo $AMBIENT_LINE | grep -i inTemp | awk '{print $2}')
 AMBIENT_IN_TEMP=$(echo $AMBIENT_LINE | perl -ne 'while(/inTemp (\d+(\.\d+){0,1})/ig){print "$1";}')
-AMBIENT_OUT_TEMP=$(echo $AMBIENT_LINE | perl -ne 'while(/inTemp (\d+(\.\d+){0,1})/ig){print "$1";}')
+AMBIENT_OUT_TEMP=$(echo $AMBIENT_LINE | perl -ne 'while(/outTemp (\d+(\.\d+){0,1})/ig){print "$1";}')
 
 AMBIENT_IN_HUMI=$(echo $AMBIENT_LINE | perl -ne 'while(/inHumi (\d+(\.\d+){0,1})/ig){print "$1";}')
 AMBIENT_OUT_HUMI=$(echo $AMBIENT_LINE | perl -ne 'while(/outHum (\d+(\.\d+){0,1})/ig){print "$1";}')
