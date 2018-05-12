@@ -51,6 +51,11 @@ echo $line
     then
         windgustmph=$val
     fi
+    val=$(echo "$f" | grep -i rainofhour | awk -F"=" '{print $2}')
+    if [ ! -z $val ];
+    then
+        rainin=$val
+    fi
 #done
 
 echo "humidity: $humidity"
@@ -59,8 +64,9 @@ echo "windspeedmph: $windspeedmph"
 echo "windgustmph: $windgustmph"
 echo "winddir: $winddir"
 echo "baromin: $baromin"
+echo "rainin: $rainin"
 dateutc=$(date -u +%F+%T | sed s/:/\%3A/g)
 
-url="https://weatherstation.wunderground.com/weatherstation/updateweatherstation.php?ID=${STATION_ID}&PASSWORD=${PASSWORD}&dateutc=${dateutc}&winddir=${winddir}&windspeedmph=${windspeedmph}&windgustmph=${windgustmph}&tempf=${tempf}&baromin=${baromin}&humidity=${humidity}&softwaretype=custom&action=updateraw"
+url="https://weatherstation.wunderground.com/weatherstation/updateweatherstation.php?ID=${STATION_ID}&PASSWORD=${PASSWORD}&dateutc=${dateutc}&winddir=${winddir}&windspeedmph=${windspeedmph}&windgustmph=${windgustmph}&tempf=${tempf}&baromin=${baromin}&humidity=${humidity}&rainin=${rainin}&softwaretype=custom3&action=updateraw"
 
 echo $(wget "${url}" -O -)
