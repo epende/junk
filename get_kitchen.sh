@@ -1,4 +1,7 @@
-#!/bin/sh 
+#!/bin/bash 
+
+# Install bc
+
 PORT_KITCHEN=9000
 PORT_BASEMENT=8000
 if [ $# -eq 0 ] ; then
@@ -14,6 +17,8 @@ OUTTEMP=$(wget --quiet http://10.0.0.96:${PORT_BASEMENT}/uncached/text/10.193E4D
 OUTHUM=$(wget --quiet http://10.0.0.96:${PORT_BASEMENT}/uncached/text/26.80E4A8000000/humidity -O - | awk '{print $2}' | tr -d '\n' | tr -d '%' | tr -d '\r')
 TZ=America/Denver
 DT=$(TZ=America/Denver date +%F" "%X" "%s | tr -d '\r' | tr -d '\n') 
+WIND_SPEED_THRESHOLD=20
+WIND_GUST_THRESHOLD=30
 
 AMBIENT_LINE=$(wget http://${IP_AMBIENT}/livedata.htm -O - | grep "input name" | grep -v "efault" | grep -i "temp\|hum\|wind\|press\|gust\|rain" | awk -F'"' '{print $4" "$14}')
 
@@ -38,6 +43,26 @@ AMBIENT_DAILY_RAIN=$(echo $AMBIENT_LINE | perl -ne 'while(/rainofdaily (\d+(\.\d
 AMBIENT_WEEKLY_RAIN=$(echo $AMBIENT_LINE | perl -ne 'while(/rainofweekly (\d+(\.\d+){0,1})/ig){print "$1";}')
 AMBIENT_MONTHLY_RAIN=$(echo $AMBIENT_LINE | perl -ne 'while(/rainofmontly (\d+(\.\d+){0,1})/ig){print "$1";}')
 AMBIENT_YEARLY_RAIN=$(echo $AMBIENT_LINE | perl -ne 'while(/rainofyearly (\d+(\.\d+){0,1})/ig){print "$1";}')
+
+# If wind speed or gust exceeds threshold, turn on the led
+
+high_wind=$(echo "$AMBIENT_AVG_WIND >= $WIND_SPEED_THRESHOLD" | bc -l)
+high_gust=$(echo "$AMBIENT_GUST >= $WIND_GUST_THRESHOLD" | bc -l)
+echo "wind:  $AMBIENT_AVG_WIND"
+echo "high wind:  $high_wind"
+echo "high gust:  $high_gust"
+
+# If wind speed or gusts exceed threshold
+# turn on the LED
+if [[ "$high_wind" -ne 0 || "$high_gust" -ne 0 ]];
+then
+    echo "Turning on LED"
+    wget --quiet "http://10.0.0.74:${PORT_KITCHEN}/uncached/7E.B92E00001000/EDS0068/LED?control=2"
+else
+    echo "Turning off LED"
+    wget --quiet "http://10.0.0.74:${PORT_KITCHEN}/uncached/7E.B92E00001000/EDS0068/LED?control=0"
+fi
+
 
 echo "{\"date\": \"$DT\", \"kitchen\": {\"temp\": \"$KTEMP\", \"hum\": \"$KHUM\"}, \"garage\": {\"temp\": \"$GTEMP\"}, \"outside\": {\"temp\": \"$OUTTEMP\", \"temp2\": \"$AMBIENT_OUT_TEMP\", \"hum\": \"$OUTHUM\", \"hum2\": \"$AMBIENT_OUT_HUMI\", \"pressure\": \"$AMBIENT_ABS_PRES\", \"wind\": \"$AMBIENT_AVG_WIND\", \"dir\": \"$AMBIENT_WIND_DIR\", \"gust\": \"$AMBIENT_GUST\", \"dailygust\": \"$AMBIENT_DAILY_GUST\", \"rain\": \"$AMBIENT_DAILY_RAIN\",}}," >> /var/www/html/wx/kitchen.txt
 tac /var/www/html/wx/kitchen.txt > /var/www/html/wx/temps.json
