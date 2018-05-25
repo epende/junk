@@ -1,0 +1,37 @@
+# Killall capture and restart every 15m
+*/15 * * * *    pkill -f "save_stream2"; /home/pendergr/save_stream2.sh
+
+# Restart capture if it died, but first wait for the 15m capture to start automatically
+* * * * *    sleep 5; if ps -ef | grep -v grep | grep save_stream2; then echo "running"; else /home/pendergr/save_stream2.sh; fi
+
+# delete cam files older than 20 days
+0 * * * *       find /home/nginx/html/cam1 -mtime +20 -type f -name "cam*.jpg" -delete
+0 * * * *       find /home/nginx/html/cam1 -mtime +15 -type f -name "*.mp4" -delete
+0 * * * *       find /home/nginx/html/cam2 -mtime +15 -type f -name "*.mp4" -delete
+
+# Save camera still images
+* * * * *       /home/pendergr/save_image1.sh 10.0.0.33 PASSWORD
+
+# remove zero size files
+* * * * *       rm $(find /home/nginx/html/cam1/images -size 0 -type f)
+
+# Create full timelapse at end of hour
+59 * * * *      sleep 50; /home/pendergr/create_timelapse.sh
+
+# Create partial hour timelapse every 1m
+* * * * *      sleep 5; /home/pendergr/create_timelapse.sh -p
+
+# Overlay weather info on latest image
+#* * * * *      /home/pendergr/overlay_wx.sh
+
+# Remove partial timelapse at end of hour
+59 * * * *      sleep 50; rm /home/nginx/html/cam1/images/$(date +%Y%m%d)/$(date +%H)/_partial.mp4
+
+# Create partial daily timelapse every hour except midnight
+59 0-22 * * *    /home/pendergr/create_timelapse.sh -pd
+
+# Create daily timelapse at end of day
+59 23 * * *    /home/pendergr/create_timelapse.sh -d
+
+# Copy latest image to latest.jpg
+#* * * * *      sudo cp $(ls -1rt $(find /home/nginx/html/cam1/images/$(date +%Y%m%d)/$(date +%H) -type f -name "*.jpg") | tail -1) /home/nginx/html/cam1/images/latest.jpg; sudo chown pendergr /home/nginx/html/cam1/images/latest.jpg; /home/pendergr/overlay_wx.sh /home/nginx/html/cam1/images/latest.jpg
