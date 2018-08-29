@@ -12,16 +12,19 @@ echo $DATA
 
 INTEMP=$(echo $DATA | head -1 | jq ".kitchen.temp1" | tr -d '"')
 UPTEMP=$(echo $DATA | head -1 | jq ".upstairs.temp2" | tr -d '"')
-OUTTEMP=$(echo $DATA | head -1 | jq ".outside.temp1" | tr -d '"')
+OUTTEMP1=$(echo $DATA | head -1 | jq ".outside.temp1" | tr -d '"')
+OUTTEMP2=$(echo $DATA | head -1 | jq ".outside.temp2" | tr -d '"')
 WIND=$(echo $DATA | head -1 | jq ".outside.windgustmph" | tr -d '"')
-HUM=$(echo $DATA | head -1 | jq ".outside.hum1" | tr -d '"')
+HUM1=$(echo $DATA | head -1 | jq ".outside.hum1" | tr -d '"')
+HUM2=$(echo $DATA | head -1 | jq ".outside.hum2" | tr -d '"')
 FAN=$(echo $DATA | head -1 | jq ".upstairs.fan" | tr -d '"')
 INHUM=$(echo $DATA | head -1 | jq ".kitchen.hum1" | tr -d '"')
 COFFEE=$(echo $DATA | head -1 | jq ".kitchen.coffee" | tr -d '"')
 RAIN=$(echo $DATA | head -1 | jq ".outside.hourlyrainin" | tr -d '"')
 
-OVR_STRING="out: $OUTTEMP"
-OVR_STRING="out: $OUTTEMP\nhum: $HUM\nin: $INTEMP\nhum: $INHUM\nupstairs: $UPTEMP\nwind: $WIND\nrain: $RAIN\nfan: $FAN\ncoffee: $COFFEE"
+OVR_STRING="out: $OUTTEMP2"
+OVR_STRING="out: $OUTTEMP2\nhum: $HUM2\nin: $INTEMP\nhum: $INHUM\nupstairs: $UPTEMP\nwind: $WIND\nrain: $RAIN\nfan: $FAN\ncoffee: $COFFEE"
+echo $OVR_STRING
 
 FN=$(find $BASE_DIR -type f -name "*.jpg" | sort -n | tail -2 | head -1)
 COUNTER=0
