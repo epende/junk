@@ -6,6 +6,8 @@ import subprocess
 import socket
 import struct
 import binascii
+import time
+OVERRIDE_FILE = "/home/pi/button_override.txt"
 rawSocket = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(0x0003))
 while True:
     packet = rawSocket.recvfrom(2048)
@@ -27,12 +29,17 @@ while True:
 
     #print "Source mac:  %s, dest ip: %s" % (source_mac, dest_ip)
     if source_mac == '78e1031490b5':
-        print "Battry button pressed, IP = " + dest_ip
-        state = subprocess.check_output("/home/pi/junk/tplink-smartplug.py -t 10.0.0.71 -c info | tail -1 | cut -c 12- | jq '.system.get_sysinfo.relay_state'", shell=True)
-        print state
+        print "Battery button pressed, IP = " + dest_ip
+        state = int(subprocess.check_output("/home/pi/junk/tplink-smartplug.py -t 10.0.0.71 -c info | tail -1 | cut -c 12- | jq '.system.get_sysinfo.relay_state'", shell=True))
+        print "state:  %s" % state
         if state > 0:
             # It's on
+            print "Turning off..."
             state = subprocess.check_output("/home/pi/junk/tplink-smartplug.py -t 10.0.0.71 -c off", shell=True)
         else:
+            print "Turning on..."
             state = subprocess.check_output("/home/pi/junk/tplink-smartplug.py -t 10.0.0.71 -c on", shell=True)
-        print state
+        # update the override file with current timestamp to prevent auto shutoff/on
+        text_file = open(OVERRIDE_FILE, "w")
+        text_file.write(str(time.time()))
+        text_file.close()
