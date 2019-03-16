@@ -5,11 +5,12 @@
 BASE_DIR="/home/nginx/html/cam1/images/$(date +%Y%m%d)/$(date +%H)"
 LATEST_FN="${BASE_DIR}/../../latest.jpg"
 
-WX_IP="10.0.0.96"
+WX_IP="44.20.6.22"
 
 DATA=$(wget -q "http://${WX_IP}/newtemps.json" -O - | head -1)
 echo $DATA
 
+DATE=$(date +%D' '%r)
 INTEMP=$(echo $DATA | head -1 | jq ".kitchen.temp1" | tr -d '"')
 UPTEMP=$(echo $DATA | head -1 | jq ".upstairs.temp2" | tr -d '"')
 OUTTEMP1=$(echo $DATA | head -1 | jq ".outside.temp1" | tr -d '"')
@@ -22,8 +23,7 @@ INHUM=$(echo $DATA | head -1 | jq ".kitchen.hum1" | tr -d '"')
 COFFEE=$(echo $DATA | head -1 | jq ".kitchen.coffee" | tr -d '"')
 RAIN=$(echo $DATA | head -1 | jq ".outside.hourlyrainin" | tr -d '"')
 
-OVR_STRING="out: $OUTTEMP2"
-OVR_STRING="out: $OUTTEMP2\nhum: $HUM2\nin: $INTEMP\nhum: $INHUM\nupstairs: $UPTEMP\nwind: $WIND\nrain: $RAIN\nfan: $FAN\ncoffee: $COFFEE"
+OVR_STRING="$DATE\nout: $OUTTEMP2\nhum: $HUM2\nin: $INTEMP\nhum: $INHUM\nupstairs: $UPTEMP\nwind: $WIND\nrain: $RAIN\nfan: $FAN\ncoffee: $COFFEE"
 echo $OVR_STRING
 
 FN=$(find $BASE_DIR -type f -name "*.jpg" | sort -n | tail -2 | head -1)
@@ -36,7 +36,7 @@ then
     exit 0
 fi
 
-while [ "$COUNTER" -lt 59 ]; do 
+while [ "$COUNTER" -lt 59 ]; do
     mogrify -fill white -undercolor '#00000080' -pointsize 42 -gravity NorthWest -annotate +10+10 "$OVR_STRING" $FN
     cp $FN $LATEST_FN
     echo "cp $FN $LATEST_FN"
